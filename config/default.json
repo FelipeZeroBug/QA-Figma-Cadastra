@@ -1,0 +1,47 @@
+{
+  "viewports": {
+    "desktop": { "label": "Desktop", "width": 1440, "height": 900, "deviceScaleFactor": 1 },
+    "tablet": { "label": "Tablet", "width": 768, "height": 1024, "deviceScaleFactor": 1 },
+    "mobile": { "label": "Mobile", "width": 390, "height": 844, "deviceScaleFactor": 1, "isMobile": true }
+  },
+  "tolerances": {
+    "positionPx": 2,
+    "dimensionPx": 2,
+    "spacingPx": 2,
+    "fontSizePx": 1,
+    "colorDistance": 4,
+    "pixelThreshold": 0.1,
+    "maxPixelDiffRatio": 0.02
+  },
+  "timeouts": {
+    "navigationMs": 60000,
+    "resourceMs": 8000,
+    "stabilizationMs": 1500,
+    "codexMs": 180000,
+    "maxScrollSteps": 80
+  },
+  "reportsDir": "reports",
+  "ignoredSelectors": [
+    "[data-visual-qa-ignore]",
+    "[data-testid*=price]",
+    "[class*=price]",
+    "time",
+    "video"
+  ],
+  "approval": {
+    "failOnCritical": true,
+    "failOnHigh": true,
+    "failOnMedium": false,
+    "failOnLow": false
+  },
+  "screenshots": {
+    "animations": "disabled",
+    "caret": "hide",
+    "fullPage": false
+  },
+  "codex": {
+    "enabled": true,
+    "command": "codex",
+    "model": null
+  }
+}

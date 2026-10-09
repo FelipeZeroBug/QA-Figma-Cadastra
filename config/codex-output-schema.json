@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "issues"],
+  "properties": {
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessment", "confidence"],
+      "properties": {
+        "assessment": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["component", "viewport", "category", "property", "expected", "actual", "difference", "severity", "description", "recommendation", "confidence"],
+        "properties": {
+          "component": { "type": "string" },
+          "viewport": { "type": "string" },
+          "category": { "type": "string" },
+          "property": { "type": "string" },
+          "expected": { "type": "string" },
+          "actual": { "type": "string" },
+          "difference": { "type": "string" },
+          "severity": { "type": "string", "enum": ["CRITICO", "ALTO", "MEDIO", "BAIXO"] },
+          "description": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}
