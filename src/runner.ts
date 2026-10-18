@@ -81,7 +81,10 @@ export async function runQa(root: string, request: QaRequest, config: QaConfig, 
     let referenceAvailable = Boolean(viewportFrame);
     let referenceError: string | undefined;
     if (viewportFrame) {
-      const capture = await captureFigma({ root, url: viewportFrame.url, viewport, screenshot: screenshots.figma, config });
+      const capture = await captureFigma({
+        root, url: viewportFrame.url, viewport, screenshot: screenshots.figma, config,
+        frameHint: `${request.task} ${request.route}`
+      });
       referenceAvailable = capture.referenceAvailable;
       referenceError = capture.referenceError;
       figmaComponents = capture.components.length ? capture.components : inspection.components;
@@ -122,9 +125,10 @@ export async function runQa(root: string, request: QaRequest, config: QaConfig, 
       config,
       outputDir: path.join(viewportDir, 'sections')
     }) : [];
-    const deterministicIssues = sectionIssues.length
-      ? [...baseDeterministicIssues.filter((issue) => issue.property !== 'pixel-diff'), ...sectionIssues]
-      : baseDeterministicIssues;
+    const specificIssues = baseDeterministicIssues.filter((issue) => issue.property !== 'pixel-diff');
+    const deterministicIssues = specificIssues.length
+      ? specificIssues
+      : sectionIssues.length ? sectionIssues : baseDeterministicIssues;
 
     hooks.progress?.(6, total, `Executando análise via Codex — ${viewport.label}`);
     let codexIssues: ViewportResult['codexIssues'] = [];
@@ -156,7 +160,7 @@ export async function runQa(root: string, request: QaRequest, config: QaConfig, 
     const finalDeterministic = merged.filter((item) => deterministicKeys.has(`${item.viewport}|${item.component}|${item.category}|${item.property}`.toLowerCase()));
     const finalCodex = merged.filter((item) => !deterministicKeys.has(`${item.viewport}|${item.component}|${item.category}|${item.property}`.toLowerCase()));
     await createIssueEvidence({
-      issues: merged, components: developmentComponents, developmentScreenshot: screenshots.development,
+      issues: merged, components: developmentComponents, figmaComponents, developmentScreenshot: screenshots.development,
       figmaScreenshot: screenshots.figma, diffScreenshot: screenshots.diff,
       issuesDir: path.join(reportDir, 'issues', viewportName), viewportHeight: viewport.height, viewportWidth: viewport.width
     });

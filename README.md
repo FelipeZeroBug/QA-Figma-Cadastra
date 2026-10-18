@@ -38,6 +38,29 @@ codex login
 
 As sessões são armazenadas somente na pasta local `.auth/`, que não é enviada ao Git.
 
+### Figma pela API (recomendado)
+
+Para ler a estrutura do arquivo, os componentes e seus estilos sem depender do navegador, crie um Personal Access Token no Figma com o escopo `file_content:read`.
+
+1. Abra **Figma → Settings → Security → Personal access tokens**;
+2. crie um token com acesso de leitura ao conteúdo dos arquivos;
+3. copie `.env.example` para `.env`;
+4. cole o token somente no arquivo local:
+
+```dotenv
+FIGMA_ACCESS_TOKEN=cole_o_novo_token_aqui
+```
+
+Confirme o acesso ao arquivo e ao nó antes de executar o QA:
+
+```bash
+npm run figma:check -- "https://www.figma.com/design/CHAVE/Arquivo?node-id=1-2" "nome-ou-rota-da-LP"
+```
+
+O comando informa o arquivo, o nó e os frames encontrados, mas nunca imprime o token. O arquivo `.env` e suas variações locais são ignorados pelo Git.
+
+### Sessão do navegador
+
 Para autenticar no Figma:
 
 ```bash
@@ -50,7 +73,7 @@ Para autenticar em uma página de desenvolvimento protegida:
 npm run auth:ws
 ```
 
-Se o Figma bloquear a captura invisível com erro 403, a automação repete o acesso automaticamente no Google Chrome visível usando a mesma sessão.
+Essa sessão continua disponível para links de protótipo. Para links de design e inspeção de estilos, prefira a API, pois o login automatizado pelo Google pode ser bloqueado com erro 403.
 
 ## Executar uma validação
 
@@ -63,7 +86,7 @@ O programa solicitará:
 1. nome da tarefa;
 2. URL completa da página desenvolvida;
 3. viewports que serão validados;
-4. URL da prévia completa do Figma para cada viewport selecionado.
+4. uma única URL da página do Figma, quando a API estiver configurada; sem token, uma URL de prévia para cada viewport.
 
 Exemplo de entradas:
 
@@ -74,7 +97,7 @@ Figma Desktop: https://www.figma.com/proto/...node-id=...
 Figma Mobile: https://www.figma.com/proto/...node-id=...
 ```
 
-Use uma prévia que represente a LP inteira. Não é necessário enviar links individuais de cada componente.
+Com a API configurada, use o link da página que contém os frames completos. A automação escolhe o frame mais compatível com cada viewport e lê suas medidas, textos, cores, tipografia e espaçamentos. Não é necessário enviar links individuais de cada componente.
 
 ## Relatórios
 

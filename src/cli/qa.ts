@@ -4,6 +4,7 @@ import { checkbox, confirm, input, select } from '@inquirer/prompts';
 import chalk from 'chalk';
 import open from 'open';
 import { loadConfig } from '../config/index.js';
+import { figmaAccessToken, loadLocalEnv } from '../config/env.js';
 import { runQa } from '../runner.js';
 import type { FigmaFrame, ViewportName } from '../types/index.js';
 
@@ -13,6 +14,7 @@ function validUrl(value: string): true | string {
 
 async function main(): Promise<void> {
   const root = process.cwd();
+  loadLocalEnv(root);
   const config = await loadConfig(root);
   console.log(chalk.bold.cyan('\n================================'));
   console.log(chalk.bold.cyan('       QA FIGMA CADASTRA'));
@@ -27,11 +29,19 @@ async function main(): Promise<void> {
     required: true
   });
   const figmaUrls: Partial<Record<ViewportName, string>> = {};
-  for (const viewport of viewports) {
-    figmaUrls[viewport] = await input({
-      message: `URL da prévia completa no Figma - ${config.viewports[viewport].label}:`,
+  if (figmaAccessToken()) {
+    const designUrl = await input({
+      message: 'URL da página do Figma que contém os frames Desktop e Mobile:',
       validate: validUrl
     });
+    for (const viewport of viewports) figmaUrls[viewport] = designUrl.trim();
+  } else {
+    for (const viewport of viewports) {
+      figmaUrls[viewport] = await input({
+        message: `URL da prévia completa no Figma - ${config.viewports[viewport].label}:`,
+        validate: validUrl
+      });
+    }
   }
   const parsedDevelopmentUrl = new URL(developmentPageUrl.trim());
   const workspaceUrl = parsedDevelopmentUrl.origin;

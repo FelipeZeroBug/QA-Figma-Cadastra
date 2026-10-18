@@ -34,7 +34,8 @@ export async function comparePageSections(options: {
   const verticalScale = figmaHeight / developmentHeight;
   const minRatio = Math.max(0.08, options.config.tolerances.maxPixelDiffRatio);
   const sections = options.components.filter((component) =>
-    !GENERIC_NAME.test(component.name) && component.rect.height >= 120 && component.rect.width >= options.viewportWidth * 0.75
+    !GENERIC_NAME.test(component.name) && /^(header|footer|main|section|article|form|div)$/i.test(component.tag ?? '')
+    && component.rect.height >= 120 && component.rect.width >= options.viewportWidth * 0.75
   );
   const issues: Issue[] = [];
 
@@ -92,8 +93,8 @@ export async function comparePageSections(options: {
       actual: `A área equivalente no desenvolvimento possui ${percentage}% de pixels divergentes.`,
       difference: `${differentPixels} pixels divergentes (${percentage}%).`,
       severity: severityForRatio(ratio),
-      description: `A seção “${section.name}” apresenta diferenças visuais relevantes em relação à referência. O cálculo considera conjuntamente estrutura, imagens, dimensões, espaçamentos, cores e tipografia da região.`,
-      recommendation: `Revisar a seção “${section.name}” usando as duas evidências lado a lado e ajustar primeiro estrutura e dimensões; depois conferir espaçamentos, tipografia, cores e imagens.`,
+      description: `Na seção “${section.name}”, ${percentage}% dos pixels são diferentes da referência. Essa medição localiza a região, mas não atribui sozinha a diferença a uma propriedade CSS específica.`,
+      recommendation: `Conferir as evidências da seção “${section.name}” e usar os itens medidos de tipografia, cor e dimensão do relatório para executar os ajustes.`,
       confidence: 0.88,
       source: 'deterministic',
       evidence: { figma: figmaEvidence, development: developmentEvidence, diff: diffEvidence }

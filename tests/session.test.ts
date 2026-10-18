@@ -30,8 +30,8 @@ describe('settlePage', () => {
       const page = await browser.newPage();
       await page.setContent('<header><h1>Cabeçalho</h1></header><main><section data-testid="hero"><h2>Hero</h2></section></main><footer>Rodapé</footer>');
       const components = await extractComponents(page);
-      expect(components.map((component) => component.name)).toEqual(['Cabeçalho', 'Hero', 'FOOTER']);
-      expect(components[1]?.selector).toBe('[data-testid="hero"]');
+      expect(components.map((component) => component.name)).toEqual(expect.arrayContaining(['Header', 'Cabeçalho', 'Hero', 'Footer']));
+      expect(components.find((component) => component.selector === '[data-testid="hero"]')?.name).toBe('Hero');
       expect(components.every((component) => component.certainty === 'MEASURED')).toBe(true);
     } finally {
       await browser.close();

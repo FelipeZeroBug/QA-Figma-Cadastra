@@ -1,7 +1,8 @@
 node_modules/
 dist/
 .auth/
-.env
+.env*
+!.env.example
 reports/
 output/
 outputs/

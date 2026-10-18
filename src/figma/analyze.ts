@@ -3,6 +3,8 @@ import type { Page } from 'playwright';
 import type { ComponentSnapshot, FigmaFrame, QaConfig, ViewportConfig } from '../types/index.js';
 import { isLoginPage, launchSession, settlePage } from '../browser/session.js';
 import { captureScrollablePrototype } from './prototype.js';
+import { figmaAccessToken } from '../config/env.js';
+import { downloadFigmaNodeImage, extractFigmaApiComponents, getFigmaNode, selectFrameForViewport } from './api.js';
 
 export interface FigmaCaptureResult {
   components: ComponentSnapshot[];
@@ -123,8 +125,32 @@ async function captureAttempt(options: {
 }
 
 export async function captureFigma(options: {
-  root: string; url: string; viewport: ViewportConfig; screenshot: string; config: QaConfig;
+  root: string; url: string; viewport: ViewportConfig; screenshot: string; config: QaConfig; frameHint?: string;
 }): Promise<FigmaCaptureResult> {
+  const token = figmaAccessToken();
+  const pathname = new URL(options.url).pathname;
+  if (token && /^\/(?:design|file)\//i.test(pathname)) {
+    try {
+      const result = await getFigmaNode(options.url, { token });
+      const frame = selectFrameForViewport(result.node, options.viewport, options.frameHint);
+      await downloadFigmaNodeImage({
+        fileKey: result.parsed.fileKey,
+        nodeId: frame.id,
+        output: path.resolve(options.screenshot),
+        token
+      });
+      return {
+        components: extractFigmaApiComponents(frame),
+        referenceAvailable: true
+      };
+    } catch (error) {
+      return {
+        components: [],
+        referenceAvailable: false,
+        referenceError: error instanceof Error ? error.message : 'Não foi possível acessar o Figma pela API.'
+      };
+    }
+  }
   const first = await captureAttempt({ ...options, headless: true });
   if (!first.blocked) return first;
   console.log('Figma retornou 403 no modo invisível. Repetindo a captura no Google Chrome visível...');
