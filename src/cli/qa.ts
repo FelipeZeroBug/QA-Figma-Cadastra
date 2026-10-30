@@ -1,6 +1,6 @@
 import path from 'node:path';
 import process from 'node:process';
-import { checkbox, confirm, input, select } from '@inquirer/prompts';
+import { confirm, input, select } from '@inquirer/prompts';
 import chalk from 'chalk';
 import open from 'open';
 import { loadConfig } from '../config/index.js';
@@ -21,33 +21,30 @@ async function main(): Promise<void> {
   console.log(chalk.bold.cyan('================================\n'));
   const task = await input({ message: 'Nome da tarefa:', validate: (value) => value.trim() ? true : 'Informe um nome.' });
   const developmentPageUrl = await input({ message: 'URL completa da página desenvolvida:', validate: validUrl });
-  const viewports = await checkbox<ViewportName>({
-    message: 'Selecione os viewports:',
+  const selectedViewport = await select<ViewportName>({
+    message: 'Selecione o viewport que deseja validar:',
     choices: (Object.entries(config.viewports) as Array<[ViewportName, (typeof config.viewports)[ViewportName]]>).map(([value, item]) => ({
-      name: `${item.label} (${item.width}×${item.height})`, value, checked: value !== 'tablet'
-    })),
-    required: true
+      name: `${item.label} (${item.width}×${item.height})`, value
+    }))
   });
+  const viewports: ViewportName[] = [selectedViewport];
   const figmaUrls: Partial<Record<ViewportName, string>> = {};
   if (figmaAccessToken()) {
     const designUrl = await input({
-      message: 'URL da página do Figma que contém os frames Desktop e Mobile:',
+      message: `URL da página do Figma que contém o frame ${config.viewports[selectedViewport].label}:`,
       validate: validUrl
     });
-    for (const viewport of viewports) figmaUrls[viewport] = designUrl.trim();
+    figmaUrls[selectedViewport] = designUrl.trim();
   } else {
-    for (const viewport of viewports) {
-      figmaUrls[viewport] = await input({
-        message: `URL da prévia completa no Figma - ${config.viewports[viewport].label}:`,
-        validate: validUrl
-      });
-    }
+    figmaUrls[selectedViewport] = await input({
+      message: `URL da prévia completa no Figma - ${config.viewports[selectedViewport].label}:`,
+      validate: validUrl
+    });
   }
   const parsedDevelopmentUrl = new URL(developmentPageUrl.trim());
   const workspaceUrl = parsedDevelopmentUrl.origin;
   const route = `${parsedDevelopmentUrl.pathname}${parsedDevelopmentUrl.search}` || '/';
-  const firstViewport = viewports[0]!;
-  const figmaUrl = figmaUrls[firstViewport]!;
+  const figmaUrl = figmaUrls[selectedViewport]!;
   if (!await confirm({ message: 'Iniciar?', default: true })) return;
   const result = await runQa(root, {
     task: task.trim(), figmaUrl: figmaUrl.trim(), figmaUrls,
